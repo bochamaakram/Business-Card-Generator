@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { Download, Briefcase, Mail, Phone, MapPin, Globe, Maximize2, Minimize2, RotateCcw, Palette, Type, Image as ImageIcon } from 'lucide-react';
+import React, { useState, useRef, ChangeEvent } from 'react';
+import { Download, Briefcase, Mail, Phone, MapPin, Globe, Maximize2, Minimize2, RotateCcw, Palette, Type, Image as ImageIcon, Upload, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -54,6 +54,7 @@ const App: React.FC = () => {
     const [showBack, setShowBack] = useState(false);
     const cardRefFront = useRef<HTMLDivElement>(null);
     const cardRefBack = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -62,6 +63,17 @@ const App: React.FC = () => {
 
     const handleThemeChange = (name: keyof ThemeConfig, value: string | null) => {
         setTheme((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                handleThemeChange('bgImage', reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const downloadPDF = async () => {
@@ -182,7 +194,11 @@ const App: React.FC = () => {
 
         return (
             <div ref={hidden ? cardRefFront : null} className={`business-card ${orientation}`} style={style}>
-                {theme.bgImage && <img src={theme.bgImage} className="bg-image" crossOrigin="anonymous" />}
+                {theme.bgImage && (
+                    <div className="bg-image-container">
+                        <img src={theme.bgImage} className="bg-image" crossOrigin="anonymous" alt="Background" />
+                    </div>
+                )}
                 <div className="content-layer" style={{ padding: '2.5rem', height: '100%', position: 'relative' }}>
                     {template === 'modern' ? (
                         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', textAlign: 'left' }}>
@@ -394,8 +410,49 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="form-group">
-                    <label><ImageIcon size={14} /> Background Image URL</label>
-                    <input value={theme.bgImage || ''} onChange={(e) => handleThemeChange('bgImage', e.target.value || null)} placeholder="https://images.unsplash.com/..." />
+                    <label><ImageIcon size={14} /> Background Image</label>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="btn-primary"
+                                style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.85rem' }}
+                            >
+                                <Upload size={16} /> Upload Image
+                            </button>
+                            {theme.bgImage && (
+                                <button
+                                    onClick={() => handleThemeChange('bgImage', null)}
+                                    className="btn-danger"
+                                    style={{ padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                    title="Remove Background"
+                                >
+                                    <X size={16} />
+                                </button>
+                            )}
+                        </div>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleImageUpload}
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                        />
+                        <div style={{ position: 'relative' }}>
+                            <input
+                                value={theme.bgImage?.startsWith('data:') ? 'Local Image Uploaded' : (theme.bgImage || '')}
+                                onChange={(e) => handleThemeChange('bgImage', e.target.value || null)}
+                                placeholder="Or paste image URL..."
+                                disabled={theme.bgImage?.startsWith('data:') || false}
+                                style={{ paddingRight: theme.bgImage?.startsWith('data:') ? '2.5rem' : '1rem' }}
+                            />
+                            {theme.bgImage?.startsWith('data:') && (
+                                <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.7rem', opacity: 0.5 }}>
+                                    Local
+                                </span>
+                            )}
+                        </div>
+                    </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '1rem', marginTop: '1.5rem' }}>

@@ -147,15 +147,22 @@ h3 {
   flex-direction: column;
 }
 
-.bg-image {
+.bg-image-container {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
   z-index: 0;
+  pointer-events: none;
+}
+
+.bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   opacity: 0.5;
+  filter: brightness(0.7);
 }
 
 .content-layer {
@@ -237,4 +244,15 @@ button {
   justify-content: center;
   gap: 0.5rem;
   background: linear-gradient(to right, #6366f1, #a855f7);
+}
+
+.btn-danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.btn-danger:hover {
+  background: #ef4444;
+  color: white;
 }
